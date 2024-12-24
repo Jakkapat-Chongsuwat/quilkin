@@ -16,6 +16,8 @@
 
 //! Filters for processing packets.
 
+// src/filters/filters.rs
+
 mod chain;
 mod error;
 mod factory;
@@ -35,6 +37,7 @@ pub mod local_rate_limit;
 pub mod r#match;
 pub mod metrics;
 pub mod pass;
+pub mod session_router;
 pub mod timestamp;
 pub mod token_router;
 
@@ -64,6 +67,7 @@ pub use self::{
     r#match::Match,
     read::ReadContext,
     registry::FilterRegistry,
+    session_router::SessionRouter,
     set::{FilterMap, FilterSet},
     timestamp::Timestamp,
     token_router::{HashedTokenRouter, TokenRouter},
@@ -90,6 +94,7 @@ pub enum FilterKind {
     TokenRouter,
     HashedTokenRouter,
     TestFilter,
+    SessionRouter,
 }
 
 /// Statically safe version of [`Filter`], if you're writing a Rust filter, you
