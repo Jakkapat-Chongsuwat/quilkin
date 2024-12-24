@@ -1,0 +1,11 @@
+version: v1alpha1
+
+clusters:
+  - endpoints:
+      - address: 127.0.0.1:7000
+
+filters:
+  - name: quilkin.filters.session_router.v1alpha1.SessionRouter
+    config:
+      handshake_bytes: 4
+      dynamo_table_name: "MyMatchmakingTable"
