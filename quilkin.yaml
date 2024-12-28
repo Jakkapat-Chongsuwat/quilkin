@@ -8,7 +8,7 @@ filters:
             - 192.168.1.0/24
           endpoint: 127.0.0.1:6001
         - sources:
-            - 10.0.0.0/8
+            - 127.0.0.0/8
           endpoint: 127.0.0.1:7002
 
   - name: quilkin.filters.debug.v1alpha1.Debug
