@@ -1,40 +1,56 @@
-/*
- * Copyright 2020 Google LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+//
+// src/main.rs
+//
+
+use std::sync::atomic::{AtomicUsize, Ordering as AtomicOrdering};
+
+use clap::Parser;
+use stable_eyre; // For better error reporting
+use tracing::{error, info};
+
+use aws_config;
+use aws_sdk_dynamodb::Client as DynamoClient;
+
+use quilkin::cli::Cli;
+use quilkin::filters::{session_router, FilterRegistry};
+use quilkin::Result as QuilkinResult;
 
 fn main() {
-    tokio::runtime::Builder::new_multi_thread()
+    // Build a multi-threaded Tokio runtime (the “old logic” approach).
+    let rt = tokio::runtime::Builder::new_multi_thread()
         .enable_all()
         .thread_name_fn(|| {
-            static ATOMIC_ID: std::sync::atomic::AtomicUsize =
-                std::sync::atomic::AtomicUsize::new(0);
-            let id = ATOMIC_ID.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+            static ATOMIC_ID: AtomicUsize = AtomicUsize::new(0);
+            let id = ATOMIC_ID.fetch_add(1, AtomicOrdering::SeqCst);
             format!("tokio-main-{id}")
         })
         .build()
-        .unwrap()
-        .block_on(async {
-            // Unwrap is safe here as it will only fail if called more than once.
-            stable_eyre::install().unwrap();
+        .expect("failed to build the tokio runtime");
 
-            match <quilkin::Cli as clap::Parser>::parse().drive(None).await {
-                Ok(()) => std::process::exit(0),
-                Err(error) => {
-                    tracing::error!(%error, error_debug=?error, "fatal error");
-                    std::process::exit(-1)
-                }
+    // Now we block_on the actual async logic.
+    rt.block_on(async {
+        // 1) Install stable_eyre for better error reporting
+        stable_eyre::install().expect("failed to install stable_eyre");
+
+        // 2) Load AWS config from environment, create a DynamoDB client
+        let aws_conf = aws_config::load_from_env().await;
+        let dynamo_client = DynamoClient::new(&aws_conf);
+
+        // 3) Register your SessionRouter filter factory with Quilkin
+        //    This uses `session_router::factory(Some(dynamo_client))`.
+        FilterRegistry::register(vec![session_router::factory(Some(dynamo_client))]);
+
+        // 4) Parse CLI args and drive the standard Quilkin flow
+        let cli = Cli::parse();
+        match cli.drive(None).await {
+            Ok(_) => {
+                info!("Quilkin shutting down normally");
+                std::process::exit(0);
             }
-        })
+            Err(e) => {
+                error!(%e, error_debug=?e, "fatal error");
+                std::process::exit(-1);
+            }
+        }
+    });
 }
