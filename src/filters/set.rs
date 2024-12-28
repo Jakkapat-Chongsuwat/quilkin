@@ -58,6 +58,7 @@ impl FilterSet {
                 filters::Pass::factory(),
                 filters::Timestamp::factory(),
                 filters::TokenRouter::factory(),
+                filters::SourceIpRouter::factory(),
             ]
             .into_iter()
             .chain(filters),

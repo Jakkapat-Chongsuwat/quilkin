@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package quilkin.filters.source_ip_router.v1alpha1;
+
+message SourceIpRouter {
+  repeated Route routes = 1;
+
+  message Route {
+    repeated string sources = 1;  // e.g. "192.168.0.0/24"
+    string endpoint = 2;          // e.g. "127.0.0.1:7002"
+  }
+}

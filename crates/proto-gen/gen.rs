@@ -211,6 +211,7 @@ fn execute(which: &str) {
                 "filters/pass/v1alpha1/pass",
                 "filters/token_router/v1alpha1/token_router",
                 "filters/timestamp/v1alpha1/timestamp",
+                "filters/source_ip_router/v1alpha1/source_ip_router",
             ],
         ),
     ];

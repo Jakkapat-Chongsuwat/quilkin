@@ -28,7 +28,7 @@ license.csv
 dependencies-src.zip
 quilkin-*.zip
 
-/quilkin.yaml
+# /quilkin.yaml
 /docs/book
 
 ### Rust template

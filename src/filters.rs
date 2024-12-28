@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+//  src\filters.rs
+
 //! Filters for processing packets.
 
 mod chain;
@@ -37,13 +39,14 @@ pub mod metrics;
 pub mod pass;
 pub mod timestamp;
 pub mod token_router;
+pub mod source_ip_router;
 
 /// Prelude containing all types and traits required to implement [`Filter`] and
 /// [`FilterFactory`].
 pub mod prelude {
     pub use super::{
         ConvertProtoConfigError, CreateFilterArgs, CreationError, Filter, FilterError,
-        FilterInstance, ReadContext, StaticFilter, WriteContext,
+        FilterInstance, ReadContext, StaticFilter, WriteContext, SourceIpRouter,
     };
 }
 
@@ -68,6 +71,7 @@ pub use self::{
     timestamp::Timestamp,
     token_router::{HashedTokenRouter, TokenRouter},
     write::WriteContext,
+    source_ip_router::SourceIpRouter,
 };
 
 use crate::test::TestFilter;
@@ -90,6 +94,7 @@ pub enum FilterKind {
     TokenRouter,
     HashedTokenRouter,
     TestFilter,
+    SourceIpRouter,
 }
 
 /// Statically safe version of [`Filter`], if you're writing a Rust filter, you
